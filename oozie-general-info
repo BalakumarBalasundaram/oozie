@@ -1,0 +1,41 @@
+Oozie Spark actions in HDP-2.5.0 local SandBox
+https://community.hortonworks.com/questions/75908/oozie-spark-actions-in-hdp-250-local-sandbox.html
+
+job.properties
+nameNode=hdfs://sandbox.hortonworks.com:8020
+jobTracker=sandbox.hortonworks.com:8050
+oozie.use.system.libpath=true
+queueName=default
+master=yarn-client
+applicationRoot=sandboxSparkAction
+userName=root
+className=LineCount
+jarFile=LineCount-assembly-1.0.jar
+oozie.wf.application.path=${nameNode}/user/${userName}/${applicationRoot}
+
+workflow.xml
+<workflow-app name="SandBox-WC-SparkAction" xmlns="uri:oozie:workflow:0.4"> 
+    <start to="spark-action"/> 
+    <action name="spark-action"> 
+        <spark xmlns="uri:oozie:spark-action:0.1"> 
+            <job-tracker>${jobTracker}</job-tracker> 
+            <name-node>${nameNode}</name-node>
+   <prepare>
+               <delete path="${output}"/>
+           </prepare>
+            <master>${master}</master>
+            <name>${className}</name> 
+            <class>${className}</class>
+            <jar>${nameNode}/user/${userName}/${applicationRoot}/lib/${jarFile}</jar>
+   <spark-opts>${sparkOpts}</spark-opts>
+            <arg>${input}</arg>
+   <arg>${output}</arg>           
+  </spark> 
+        <ok to="end"/>
+        <error to="kill"/> 
+    </action>
+    <kill name="kill"> 
+  <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message> 
+    </kill> 
+    <end name="end"/> 
+</workflow-app>
